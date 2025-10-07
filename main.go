@@ -2,21 +2,38 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"bufio"
+//	"io"
+//	"net/http"
+////	"bufio"
+//	"encoding/json"
+	"air-quality-loader/request"
 )
 
 func main() {
-	resp, err := http.Get("https://api.gios.gov.pl/pjp-api/v1/rest/station/findAll?size=500")
+	pauses := request.RequestPauses{ // time in milliseconds
+		Station: 30_000,
+		Sensor: 50,
+	}
+
+	r := request.Request{}
+
+	p, err := r.SetRequest("https://api.gios.gov.pl/pjp-api/v1/rest/station/findAll")
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
+	}
+	if p != true {
+		panic("Wrong request")
 	}
 
-	fmt.Println("Ready", resp.Status)
-	scanner := bufio.NewScanner(resp.Body)
-
-	for i:=0; scanner.Scan(); i++ {
-		fmt.Println(i, scanner.Text(), "\n")
+	if err := r.SetPages(); err != nil {
+		panic(err)
 	}
 
+	if err := r.GetData(true, pauses.Station, "Lista stacji pomiarowych"); err != nil {
+		panic(err)
+	}
+	for i := range len(r.Body) {
+		fmt.Println(r.Body[i])
+	}
+	fmt.Print(r.Body)
 }
