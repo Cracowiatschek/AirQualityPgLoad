@@ -1,12 +1,11 @@
 package request
 
-
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
-	"io"
 	"strconv"
 	"time"
 )
@@ -17,9 +16,8 @@ type Request struct {
 	Body    []map[string]interface{}
 }
 
-
 type requestMismatch struct {
-	arg 	int
+	arg     int
 	message string
 }
 
@@ -27,7 +25,7 @@ func (e *requestMismatch) Error() string {
 	return fmt.Sprintf("%d - %s", e.arg, e.message)
 }
 
-func (r *Request) SetRequest (req string) (bool, error) {
+func (r *Request) SetRequest(req string) (bool, error) {
 	pattern, _ := regexp.Compile("https://[a-z, .]*.pl/[a-z, -]*/v1/rest/[a-z, A-Z/]*")
 
 	match := pattern.MatchString(req)
@@ -36,11 +34,11 @@ func (r *Request) SetRequest (req string) (bool, error) {
 		r.Request = req
 		return true, nil
 	} else {
-		return false, &requestMismatch{404, "Wrong structure of request" }
+		return false, &requestMismatch{404, "Wrong structure of request"}
 	}
 }
 
-func (r *Request) SetPages () (error) {
+func (r *Request) SetPages() error {
 	var response map[string]interface{}
 	if r.Request == "" {
 		panic("Empty request")
@@ -64,10 +62,10 @@ func (r *Request) SetPages () (error) {
 	return nil
 }
 
-func (r *Request) GetData (allPages bool, pauseTime int, item string) (error) {
+func (r *Request) GetData(allPages bool, pauseTime int, item string) error {
 	var responseDecoded map[string]interface{}
 
-	if r.Request == ""{
+	if r.Request == "" {
 		panic("Empty request")
 	}
 
@@ -87,8 +85,8 @@ func (r *Request) GetData (allPages bool, pauseTime int, item string) (error) {
 		r.extractData(values)
 	} else {
 		for i := range int64(r.Pages) {
-			fmt.Println(i,"Start", time.Now())
-			request := r.Request+"?page="+strconv.FormatInt(i, 10)
+			fmt.Println(i, "Start", time.Now())
+			request := r.Request + "?page=" + strconv.FormatInt(i, 10)
 			response, err := http.Get(request)
 			if err != nil {
 				return err
@@ -102,15 +100,15 @@ func (r *Request) GetData (allPages bool, pauseTime int, item string) (error) {
 
 			values := responseDecoded[item].([]interface{})
 			r.extractData(values)
-			fmt.Println(i,"Stop", time.Now())
+			fmt.Println(i, "Stop", time.Now())
 			time.Sleep(time.Duration(pauseTime) * time.Millisecond)
 		}
 	}
 	return nil
 }
 
-func (r *Request) extractData (data []interface{}) {
-	for i:=0; i < len(data); i++ {
+func (r *Request) extractData(data []interface{}) {
+	for i := 0; i < len(data); i++ {
 		r.Body = append(r.Body, data[i].(map[string]interface{}))
 	}
 }

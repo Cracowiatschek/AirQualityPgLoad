@@ -2,17 +2,17 @@ package main
 
 import (
 	"fmt"
-//	"io"
-//	"net/http"
-////	"bufio"
-//	"encoding/json"
+	//	"io"
+	//	"net/http"
+	////	"bufio"
+	//	"encoding/json"
 	"air-quality-loader/request"
 )
 
 func main() {
 	pauses := request.RequestPauses{ // time in milliseconds
 		Station: 30_000,
-		Sensor: 50,
+		Sensor:  50,
 	}
 
 	r := request.Request{}
